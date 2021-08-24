@@ -92,6 +92,9 @@ type Work struct {
 	// Writer is where results will be written. If nil, results are written to stdout.
 	Writer io.Writer
 
+	// A list of Authorization values to choose randomly when generating requests
+	AuthorizationValues string[]
+
 	initOnce sync.Once
 	results  chan *result
 	stopCh   chan struct{}
@@ -268,6 +271,7 @@ func cloneRequest(r *http.Request, body []byte) *http.Request {
 	// shallow copy of the struct
 	r2 := new(http.Request)
 	*r2 = *r
+
 	// deep copy of the Header
 	r2.Header = make(http.Header, len(r.Header))
 	for k, s := range r.Header {

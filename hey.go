@@ -38,6 +38,8 @@ const (
 	heyUA        = "hey/0.0.1"
 )
 
+var generatorValues []string
+
 var (
 	m           = flag.String("m", "GET", "")
 	headers     = flag.String("h", "", "")
@@ -48,6 +50,15 @@ var (
 	authHeader  = flag.String("a", "", "")
 	hostHeader  = flag.String("host", "", "")
 	userAgent   = flag.String("U", "", "")
+    // I would create a generic "generator" file since you may want to
+    // parameterize other stuff in the future. For now this could just
+    // be a list of Authorization types each on a new line, but in the
+    // future maybe it contains other things.
+    //
+    // File Format:
+    // Basic cjkdicsnodjk==
+    // Bearer jkdjflskldklskhjg
+    genOpts     = flag.String("g", "", "")
 
 	output = flag.String("o", "", "")
 
@@ -182,6 +193,12 @@ func main() {
 		bodyAll = slurp
 	}
 
+    // Read the file into generatorValues
+	var RequestFunc func() *http.Request =  nil
+	if genOpt {
+		RequestFunc = *generator
+	}
+
 	var proxyURL *gourl.URL
 	if *proxyAddr != "" {
 		var err error
@@ -224,6 +241,7 @@ func main() {
 	w := &requester.Work{
 		Request:            req,
 		RequestBody:        bodyAll,
+		RequestFunc:        nil,
 		N:                  num,
 		C:                  conc,
 		QPS:                q,
@@ -286,4 +304,10 @@ func (h *headerSlice) String() string {
 func (h *headerSlice) Set(value string) error {
 	*h = append(*h, value)
 	return nil
+}
+
+func generator() *http.Request {
+	// Do what cloneRequest does in requestor.go, but add an extra
+    // Authorization header based on the file you read into generatorValues
+
 }
